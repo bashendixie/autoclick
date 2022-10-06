@@ -9,6 +9,10 @@ namespace WindowsFormsApp1
     internal enum ClickModes
     {
         /// <summary>
+        /// 间隔模式
+        /// </summary>
+        ClickByStep,
+        /// <summary>
         /// 根据图片点击
         /// </summary>
         ClickByPictures,

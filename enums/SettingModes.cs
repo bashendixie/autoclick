@@ -10,6 +10,10 @@ namespace WindowsFormsApp1
     {
         NotSettingState,
 
+        /// <summary>
+        /// 间隔点击模式的点击位置设置
+        /// </summary>
+        ClickByStep_PositionOne,
 
         /// <summary>
         /// 根据图片的点击位置设置

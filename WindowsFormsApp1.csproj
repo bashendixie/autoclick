@@ -83,6 +83,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="controls\UserControl0.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="controls\UserControl0.Designer.cs">
+      <DependentUpon>UserControl0.cs</DependentUpon>
+    </Compile>
     <Compile Include="controls\UserControl1.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -142,6 +148,9 @@
     <Compile Include="tools\ImagesTools.cs" />
     <Compile Include="tools\XmlSerializeHelper.cs" />
     <Compile Include="Win32Api.cs" />
+    <EmbeddedResource Include="controls\UserControl0.resx">
+      <DependentUpon>UserControl0.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="controls\UserControl1.resx">
       <DependentUpon>UserControl1.cs</DependentUpon>
     </EmbeddedResource>

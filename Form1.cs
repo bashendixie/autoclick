@@ -10,32 +10,62 @@ namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
+        /// <summary>
+        /// 间隔模式控件
+        /// </summary>
+        private UserControl0 control0;
+        /// <summary>
+        /// 图片模式控件
+        /// </summary>
         private UserControl1 control1;
+        /// <summary>
+        /// 文字模式控件
+        /// </summary>
         private UserControl2 control2;
+        /// <summary>
+        /// 颜色模式控件
+        /// </summary>
         private UserControl3 control3;
+        /// <summary>
+        /// 其他模式控件
+        /// </summary>
         private UserControl4 control4;
-        private ClickModes clickModes = ClickModes.ClickByPictures;
+        /// <summary>
+        /// 初始模式
+        /// </summary>
+        private ClickModes clickModes = ClickModes.ClickByStep;
+        /// <summary>
+        /// 初始位置设置
+        /// </summary>
         private SettingModes settingModes = SettingModes.NotSettingState;
+        /// <summary>
+        /// 配置文件实体
+        /// </summary>
         public SettingModel settingModel;
-
-
+        /// <summary>
+        /// 钩子
+        /// </summary>
         MouseHook mh;
+        /// <summary>
+        /// 定时器
+        /// </summary>
         System.Timers.Timer timer;
         /// <summary>
-        /// 用于鼠标点击模式1 点击后再次点击的标记
+        /// 定时任务开始标记
         /// </summary>
-        bool clickFlag = true;
         bool startFlag = false;
-        int alts, altd, f1, f5, f6;
+        /// <summary>
+        /// 快捷键
+        /// </summary>
+        int f1, f5, f6;
+        /// <summary>
+        /// 点击记录
+        /// </summary>
         List<string> list = new List<string>();
         /// <summary>
-        /// 用于鼠标点击模式2 位置1点击后再次点击的标记
+        /// 运行次数
         /// </summary>
-        bool clickFlag1 = true;
-        /// <summary>
-        /// 用于鼠标点击模式2 位置2点击后再次点击的标记
-        /// </summary>
-        bool clickFlag2 = true;
+        int runtimes = 0;
 
 
         #region 系统方法开始
@@ -43,39 +73,25 @@ namespace WindowsFormsApp1
         public Form1()
         {
             InitializeComponent();
-            InitializeUserControls();
-            this.panel1.Controls.Add(control1);
-            this.panel1.Height = 106;
-            this.Height = 259;
-            settingModel = XmlSerializeHelper.DESerializer<SettingModel>(FileOperationHelper.ReadStringFromFile(Application.StartupPath + "\\Setting.xml", FileMode.Open));
-            
-            InitializeTimer();
 
-            alts = Win32Api.GlobalAddAtom("Alt-S");
-            altd = Win32Api.GlobalAddAtom("Alt-D");
-            f1 = Win32Api.GlobalAddAtom("F1");
-            f5 = Win32Api.GlobalAddAtom("F5");
-            f6 = Win32Api.GlobalAddAtom("F6");
-            Win32Api.RegisterHotKey(this.Handle, alts, Win32Api.KeyModifiers.Alt, (int)Keys.S);
-            Win32Api.RegisterHotKey(this.Handle, altd, Win32Api.KeyModifiers.Alt, (int)Keys.D);
-            Win32Api.RegisterHotKey(this.Handle, f1, Win32Api.KeyModifiers.None, (int)Keys.F1);
-            Win32Api.RegisterHotKey(this.Handle, f5, Win32Api.KeyModifiers.None, (int)Keys.F5);
-            Win32Api.RegisterHotKey(this.Handle, f6, Win32Api.KeyModifiers.None, (int)Keys.F6);
-
-
-            /*Mat mat1 = new Mat(@"C:\\Users\\zyh\\Desktop\\111.jpg");
-            Mat mat2 = new Mat(@"C:\\Users\\zyh\\Desktop\\222.jpg");
-            double m = ImagesTools.Compare_SSIM(mat1, mat2, 3);
-
-            Mat mat4 = new Mat(@"C:\\Users\\zyh\\Desktop\\222.jpg");*/
-        }
-
-        private void InitializeUserControls()
-        {
+            control0 = new UserControl0(this);
             control1 = new UserControl1(this);
             control2 = new UserControl2(this);
             control3 = new UserControl3(this);
             control4 = new UserControl4(this);
+
+            this.comboBox1.SelectedIndex = 0;
+
+            settingModel = XmlSerializeHelper.DESerializer<SettingModel>(FileOperationHelper.ReadStringFromFile(Application.StartupPath + "\\Setting.xml", FileMode.Open));
+            
+            InitializeTimer();
+
+            f1 = Win32Api.GlobalAddAtom("F1");
+            f5 = Win32Api.GlobalAddAtom("F5");
+            f6 = Win32Api.GlobalAddAtom("F6");
+            Win32Api.RegisterHotKey(this.Handle, f1, Win32Api.KeyModifiers.None, (int)Keys.F1);
+            Win32Api.RegisterHotKey(this.Handle, f5, Win32Api.KeyModifiers.None, (int)Keys.F5);
+            Win32Api.RegisterHotKey(this.Handle, f6, Win32Api.KeyModifiers.None, (int)Keys.F6);
         }
 
         /// <summary>
@@ -101,15 +117,7 @@ namespace WindowsFormsApp1
         {
             IntPtr id = m.WParam;//IntPtr用于表示指针或句柄的平台特定类型
             int sid = id.ToInt32();
-            if (sid == alts)
-            {
-                //this.button2_Click(null, null);
-            }
-            else if (sid == altd)
-            {
-                //this.button5_Click(null, null);
-            }
-            else if (sid == f1)
+            if (sid == f1)
             {
                 this.settingModes = SettingModes.NotSettingState;
                 GetMonitorArea(1);
@@ -117,80 +125,63 @@ namespace WindowsFormsApp1
             }
             else if (sid == f5)
             {
+                this.comboBox1.Enabled = false;
                 this.button2_Click(null, null);
             }
             else if (sid == f6)
             {
+                this.comboBox1.Enabled = true;
                 this.button5_Click(null, null);
             }
         }
 
-        # endregion 系统方法结束
+        #endregion 系统方法结束
 
 
 
         #region 模式切换开始
-        /// <summary>
-        /// 根据图像进行点击
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.panel1.Controls.Clear();
-            this.panel1.Controls.Add(control1);
-            this.panel1.Height = 106;
-            this.Height = 259;
 
-            /*if (this.radioButton1.Checked)
+            if (comboBox1.SelectedIndex == 0)
             {
-                this.checkBox2.Checked = true;
-                this.checkBox2.Enabled = true;
-            }*/
-        }
+                this.clickModes = ClickModes.ClickByStep;
 
-        /// <summary>
-        /// 根据文字进行点击
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void radioButton2_CheckedChanged(object sender, EventArgs e)
-        {
-            this.clickModes = ClickModes.ClickByText;
-            this.panel1.Controls.Clear();
-            /*if (this.radioButton2.Checked)
+                this.panel1.Controls.Clear();
+                this.panel1.Controls.Add(control0);
+                this.panel1.Height = 56;
+                this.Height = 209;
+            }
+            else if (comboBox1.SelectedIndex == 1)
             {
-                this.checkBox2.Checked = true;
-                this.checkBox2.Enabled = false;
-            }*/
+                this.clickModes = ClickModes.ClickByPictures;
+
+                this.panel1.Controls.Clear();
+                this.panel1.Controls.Add(control1);
+                this.panel1.Height = 106;
+                this.Height = 259;
+            }
+            else if (comboBox1.SelectedIndex == 2)
+            {
+                this.clickModes = ClickModes.ClickByText;
+                this.panel1.Controls.Clear();
+            }
+            else if (comboBox1.SelectedIndex == 3)
+            {
+                this.clickModes = ClickModes.ClickByColor;
+                this.panel1.Controls.Clear();
+            }
+            else if (comboBox1.SelectedIndex == 4)
+            {
+                this.clickModes = ClickModes.ClickByCustomize;
+                this.panel1.Controls.Clear();
+                this.panel1.Controls.Add(control4);
+                this.Height = 672;
+            }
+
         }
 
-        /// <summary>
-        /// 根据颜色进行点击
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void radioButton3_CheckedChanged(object sender, EventArgs e)
-        {
-            this.clickModes = ClickModes.ClickByColor;
-            this.panel1.Controls.Clear();
-        }
-
-        /// <summary>
-        /// 自定义进行点击
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void radioButton4_CheckedChanged(object sender, EventArgs e)
-        {
-            this.clickModes = ClickModes.ClickByCustomize;
-            this.panel1.Controls.Clear();
-            this.panel1.Controls.Add(control4);
-            this.Height = 672;
-        }
         # endregion 模式切换结束
-
-
 
 
         /// <summary>
@@ -236,6 +227,9 @@ namespace WindowsFormsApp1
             
             switch(settingModes)
             {
+                case SettingModes.ClickByStep_PositionOne:
+                    this.control0.SetXYPosition(x, y);
+                    break;
                 case SettingModes.ClickByPictures_PositionOne:
                     this.control1.SetXYPosition(x, y);
                     break;
@@ -251,6 +245,14 @@ namespace WindowsFormsApp1
         {
             switch (clickModes)
             {
+                case ClickModes.ClickByStep:
+                    int x1, y1;
+                    if (!this.control0.ClickPositionFlag(out x1, out y1))
+                    {
+                        MessageBox.Show("请检查鼠标点击位置设置是否正确。");
+                        return;
+                    }
+                    break;
                 case ClickModes.ClickByPictures:
                     if(this.control1.mat == null)
                     {
@@ -264,55 +266,6 @@ namespace WindowsFormsApp1
             this.BackColor = Color.AliceBlue;
             this.startFlag = true;
             this.timer.Start();
-
-
-            /*//进行初始判断
-            int flag = GetAvaildFlag();
-            if(flag == 1)
-            {
-                MessageBox.Show("左上坐标、右下坐标、鼠标点击位置不能为空。");
-                return;
-            }
-            if(flag == 2)
-            {
-                MessageBox.Show("左上坐标、右下坐标、鼠标点击位置不能为负数。");
-                return;
-            }
-            if (flag == 3)
-            {
-                MessageBox.Show("左上坐标的x或y不能小于右下坐标对应x或y。");
-                return;
-            }
-            if (flag == 4)
-            {
-                MessageBox.Show("左上坐标、右下坐标、鼠标点击位置必须为数值类型。");
-                return;
-            }
-
-            if(this.checkBox2.Checked)
-            {
-                if (flag == 10)
-                {
-                    MessageBox.Show("下面区域的左上坐标、右下坐标不能为空。");
-                    return;
-                }
-                if (flag == 20)
-                {
-                    MessageBox.Show("下面区域的左上坐标、右下坐标不能为负数。");
-                    return;
-                }
-                if (flag == 30)
-                {
-                    MessageBox.Show("下面区域的左上坐标的x或y不能小于右下坐标对应x或y。");
-                    return;
-                }
-            }
-
-            
-            this.position = 0;
-            GetMonitorArea(1);
-            GetMonitorArea(2);
-            */
         }
 
         /// <summary>
@@ -322,6 +275,7 @@ namespace WindowsFormsApp1
         /// <param name="e"></param>
         private void button5_Click(object sender, EventArgs e)
         {
+            this.runtimes = 0;
             this.BackColor = Color.FromArgb(240,240,240);
             this.startFlag = false;
             timer.Stop();
@@ -338,6 +292,13 @@ namespace WindowsFormsApp1
             {
                 switch (this.clickModes)
                 {
+                    case ClickModes.ClickByStep:
+                        int x0, y0;
+                        if (this.control0.ClickPositionFlag(out x0, out y0))
+                        {
+                            HelpTools.SingleClick(x0, y0);
+                        }
+                        break;
                     case ClickModes.ClickByPictures:
                         int x2, y2;
                         if(this.GetShouldClickFlagByPictures(out x2, out y2))
@@ -366,6 +327,12 @@ namespace WindowsFormsApp1
                     default:
                         break;
                 }
+
+                runtimes++;
+                if(settingModel!=null && settingModel.fixedFlag && runtimes>= settingModel.clickNums)
+                {
+                    this.Invoke(new Action(() =>this.button5_Click(null, null)));
+                }    
             }
                
 
@@ -852,6 +819,8 @@ namespace WindowsFormsApp1
             Form4 form = new Form4(this);
             form.ShowDialog();
         }
+
+       
 
         public void SetSettingType(SettingModes settingModes)
         {
